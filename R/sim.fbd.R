@@ -28,14 +28,14 @@ sim.fbd.age<-function(age, numbsim, lambda, mu, psi, frac = 1, mrca = FALSE, com
     stop("TreeSim needed for this function to work. Please install it.", call. = FALSE)
   }
   
-  trees = TreeSim::sim.bd.age(age, numbsim, lambda, mu, frac, mrca, complete=T, K)
+  trees = TreeSim::sim.bd.age(age, numbsim, lambda, mu, frac, mrca, complete = T, K)
   
   for(i in 1:length(trees)) {
     if(is.numeric(trees[[i]])) next
     
     t = trees[[i]]
     f <- sim.fossils.poisson(tree = t, rate = psi)
-    
+
     tree = SAtree.from.fossils(t,f)$tree
     
     node.ages = n.ages(tree)
@@ -66,7 +66,6 @@ sim.fbd.age<-function(age, numbsim, lambda, mu, psi, frac = 1, mrca = FALSE, com
 #' @param lambda Vector of speciation rates, the rate in entry i is the speciation rate prior (ancestral) to time times[i].
 #' @param mu Vector of extinction rates, the rate in entry i is the extinction rate prior (ancestral) to time times[i].
 #' @param psi Vector of fossil sampling rates, the rate in entry i is the fossil sampling rate prior (ancestral) to time times[i].
-#' @param frac Extant sampling fraction: The actual (simulated) number of tips is n, but only n*frac tips are included in the sampled tree (incomplete sampling).
 #' #' @param times Vector of mass extinction and rate shift times. Time is 0 today and increasing going backwards in time. Specify the
 #' vector as times[i]<times[i+1]. times[1]=0 (today).
 #' @param mrca If mrca=FALSE: age is the time since origin. If mrca=TRUE: age is the time since the most recent common ancestor of all sampled tips.
@@ -79,7 +78,7 @@ sim.fbd.age<-function(age, numbsim, lambda, mu, psi, frac = 1, mrca = FALSE, com
 #' }
 #' @keywords fosilized birth death
 #' @export
-sim.fbd.rateshift.age <- function(age, numbsim, lambda, mu, psi, times, frac = 1, mrca = FALSE, complete = FALSE){
+sim.fbd.rateshift.age <- function(age, numbsim, lambda, mu, psi, times, mrca = FALSE, complete = FALSE){
   if(length(lambda) != length(times))
     stop("Length mismatch between rate shift times and birth rates")
   if(length(mu) != length(times))
@@ -90,16 +89,16 @@ sim.fbd.rateshift.age <- function(age, numbsim, lambda, mu, psi, times, frac = 1
   if (!requireNamespace("TreeSim", quietly = TRUE)) {
     stop("TreeSim needed for this function to work. Please install it.", call. = FALSE)
   }
-  trees = TreeSim::sim.rateshift.age(age, numbsim, lambda, mu, frac, mrca, complete, norm)
+  trees = TreeSim::sim.rateshift.age(age, numbsim, lambda, mu, times, mrca, complete, norm)
   for (i in 1:length(trees)){
     if(is.numeric(trees[[i]])) next
-    t = trees[i]
-    origin = max(n.ages(t)) + tree$root.edge
+    t = trees[i][[1]]
+    origin = tree.max(as.phylo(t))
     horizons = c(times, origin)
+
     f <- sim.fossils.intervals(tree = t, interval.ages = horizons, rate = psi)
 
     tree = SAtree.from.fossils(t,f)$tree
-
     if (!complete){
       tree = drop.unsampled(tree)
     }
@@ -108,6 +107,7 @@ sim.fbd.rateshift.age <- function(age, numbsim, lambda, mu, psi, times, frac = 1
     if (!mrca){
       trees[[i]]$root.edge = origin - max(node.ages)
     }
+
     trees[[i]] = SAtree(trees[[i]], complete)
   }
   return(trees)
@@ -205,7 +205,7 @@ sim.fbd.taxa <- function(n, numbsim, lambda, mu, psi, frac = 1, complete = FALSE
   {
     t = trees[[i]]
     f <- sim.fossils.poisson(tree = t, rate = psi)
-    
+
     tree = SAtree.from.fossils(t,f)$tree
     
     node.ages = n.ages(tree)
