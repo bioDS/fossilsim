@@ -236,8 +236,8 @@ subsample.fossils.uniform <- function(fossils, proportion) {
 #'   occurrences.
 #' @param proportion a vector of proportions of all fossil samples to return in the
 #'   subsample. The rate in entry i is the proportion rate ancestral to time times[i]
-#' @param times Vector of sampling proportion rate shift times. Time is 0 today and increasing going backwars in time.
-#' Specify the vector as times[i] < times[i+1]. times[1] = 0 (today)
+#' @param times Vector of sampling proportion rate shift times. Time is 0 today and increasing going backwards in time.
+#' Specify the vector as times[i] < times[i+1]. times[1] = 0 (today). Do not specify the origin time (a maximum time is not required).
 #' @return an object of class "fossils" containing the subsampled fossil
 #'   occurrences.
 #' @examples
@@ -261,11 +261,9 @@ subsample.fossils.uniform.intervals <- function(fossils, proportions, times) {
   indices <- 1:length(ages)
   for (i in 1:length(times)) {
     if (i == length(times)) {
-      sel_a <- ages[ages > times[i]]
       sel_f <- indices[ages > times[i]]
     } else {
-      sel_a <- ages[(ages <= times[i + 1] & ages > times[i])]
-      sel_f <- indices[ages <= times[i + 1] & ages > times[i]]
+      sel_f <- indices[ages < times[i + 1] & ages >= times[i]]
     }
     s <- sample(sel_f, length(sel_f) * proportions[i], replace = FALSE)
     smp <- c(smp, s)
